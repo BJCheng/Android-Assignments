@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:enabled="false"
+        android:key="server-uri"
+        android:title="Server Uri"
+        android:summary="%s"/>
+    <EditTextPreference
+        android:enabled="false"
+        android:key="username"
+        android:title="@string/user_name_pref"
+        android:summary="@string/user_name_summary" />
+    <EditTextPreference
+        android:enabled="false"
+        android:key="client-id"
+        android:title="@string/client_id_pref"
+        android:summary="@string/client_id_summary" />
+
+</PreferenceScreen>
