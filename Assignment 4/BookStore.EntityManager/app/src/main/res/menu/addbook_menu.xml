@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="@string/add"
+          android:id="@+id/addBook"
+          android:showAsAction="ifRoom"/>
+    <item android:title="Item"
+          android:showAsAction="ifRoom"
+          android:id="@+id/addBookCancel"/>
+</menu>
