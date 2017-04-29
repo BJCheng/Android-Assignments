@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="schemas.android.com/tools"
+      tools:context=".activities.MainActivity"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item android:title="Delete"
+          android:id="@+id/mainCabDelete"
+          android:icon="@drawable/ic_menu_delete"
+          app:showAsAction="ifRoom"/>
+    <item android:title="Cancel"
+          android:id="@+id/mainCabCancel"
+          android:icon="@drawable/ic_menu_block"
+          app:showAsAction="ifRoom"/>
+</menu>

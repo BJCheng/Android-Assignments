@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="schemas.android.com/tools"
+      tools:context=".activities.MainActivity"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item android:title="Order"
+          android:id="@+id/checkoutOrder"
+          app:showAsAction="ifRoom"
+          android:icon="@drawable/ic_menu_save"/>
+    <item android:title="@string/cancel"
+          android:id="@+id/checkoutCancel"
+          app:showAsAction="ifRoom"
+          android:icon="@android:drawable/ic_menu_close_clear_cancel"/>
+</menu>

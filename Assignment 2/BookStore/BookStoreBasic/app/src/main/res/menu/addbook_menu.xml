@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="schemas.android.com/tools"
+      tools:context=".activities.MainActivity"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item android:title="@string/add"
+          android:id="@+id/addAdd"
+          android:icon="@drawable/ic_menu_add"
+          app:showAsAction="ifRoom"/>
+    <item android:title="Cancel"
+          android:id="@+id/addCancel"
+          android:icon="@android:drawable/ic_menu_close_clear_cancel"
+          app:showAsAction="ifRoom"/>
+</menu>
