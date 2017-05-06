@@ -46,6 +46,7 @@ public class MessageContract extends BaseContract {
 
 
     public static final String ID = _ID;
+
     public static final String SEQUENCE_NUMBER = "sequence_number";
     public static final String MESSAGE_TEXT = "message_text";
     public static final String CHAT_ROOM = "chat_room";
@@ -54,6 +55,7 @@ public class MessageContract extends BaseContract {
     public static final String LONGITUDE = "longitude";
     public static final String SENDER = "sender";
     public static final String SENDER_ID = "peer_fk";
+
     public static final String[] COLUMNS = {ID, SEQUENCE_NUMBER, MESSAGE_TEXT, CHAT_ROOM, TIMESTAMP,
             LATITUDE, LONGITUDE, SENDER, SENDER_ID};
 
@@ -74,9 +76,9 @@ public class MessageContract extends BaseContract {
     private static int messageTextColumn = -1;
 
     public static String getMessageText(Cursor cursor) {
-//        if (messageTextColumn < 0) {
+        if (messageTextColumn < 0) {
             messageTextColumn = cursor.getColumnIndexOrThrow(MESSAGE_TEXT);
-//        }
+        }
         return cursor.getString(messageTextColumn);
     }
 
