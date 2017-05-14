@@ -40,19 +40,16 @@ public class SendMessage extends DialogFragment {
     }
 
     private IMessageSender listener;
-
     private ChatRoom chatroom;
-
     private Double latitude;
-
     private Double longitude;
-
     private Date timestamp;
-
     private EditText messageText;
+    private Button sendButton;
+    private Button cancelButton;
 
     @Override
-    public void onAttach(Context activity) {
+    public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (!(activity instanceof IMessageSender)) {
             throw new IllegalStateException("Activity must implement IAddChatroom.");
@@ -89,8 +86,12 @@ public class SendMessage extends DialogFragment {
         View rootView = inflater.inflate(R.layout.send_message, container, false);
 
         // TODO initialize the UI
+        messageText = (EditText) rootView.findViewById(R.id.message_text);
+        sendButton = (Button) rootView.findViewById(R.id.send);
+        cancelButton = (Button) rootView.findViewById(R.id.cancel);
 
-
+        sendButton.setOnClickListener(confirmListener);
+        cancelButton.setOnClickListener(cancelListener);
 
         return rootView;
     }

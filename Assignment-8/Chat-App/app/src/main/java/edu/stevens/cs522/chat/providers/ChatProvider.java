@@ -23,30 +23,18 @@ public class ChatProvider extends ContentProvider {
     }
 
     private static final String AUTHORITY = BaseContract.AUTHORITY;
-
     private static final String MESSAGE_CONTENT_PATH = MessageContract.CONTENT_PATH;
-
     private static final String MESSAGE_CONTENT_PATH_ITEM = MessageContract.CONTENT_PATH_ITEM;
-
     private static final String MESSAGE_CONTENT_PATH_SYNC = MessageContract.CONTENT_PATH_SYNC;
-
     private static final String PEER_CONTENT_PATH = PeerContract.CONTENT_PATH;
-
     private static final String PEER_CONTENT_PATH_ITEM = PeerContract.CONTENT_PATH_ITEM;
-
     private static final String CHATROOM_CONTENT_PATH = ChatroomContract.CONTENT_PATH;
 
-
     private static final String DATABASE_NAME = "chat.db";
-
     private static final int DATABASE_VERSION = 1;
-
     private static final String CHATROOMS_TABLE = "chatrooms";
-
     private static final String MESSAGES_TABLE = "messages";
-
-    private static final String PEERS_TABLE = "peers";
-
+    private static final String PEERS_TABLE = "view_peers";
     private static final String CHATROOM_NAME_INDEX = "chatroom_name_index";
 
     // Create the constants used to differentiate between the different URI  requests.
@@ -141,28 +129,26 @@ public class ChatProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+        long id;
         switch (uriMatcher.match(uri)) {
             case MESSAGES_ALL_ROWS:
                 // TODO: Implement this to handle requests to insert a new message.
                 // Make sure to notify any observers
-                long messageId = db.insertOrThrow(MESSAGES_TABLE, null, values);
+                id = db.insertOrThrow(MESSAGES_TABLE, null, values);
                 getContext().getContentResolver().notifyChange(uri, null);
-                return ContentUris.withAppendedId(uri, messageId);
+                return ContentUris.withAppendedId(uri, id);
             case PEERS_ALL_ROWS:
                 // TODO: Implement this to handle requests to insert a new peer.
                 // Make sure to notify any observers
-                long id = 0;
                 id = db.insertOrThrow(PEERS_TABLE, null, values);
                 getContext().getContentResolver().notifyChange(uri, null);
-//            case CHATROOMS_ALL_ROWS:
-//                // TODO: Implement this to handle requests to insert a new chatroom.
-//                // Make sure to notify any observers
-                try{
-                    db.insertOrThrow(CHATROOMS_TABLE, null, values);
-                }catch(Exception e){
-                    Log.e("ERROR", e.toString());
-                }
-
+                return ContentUris.withAppendedId(uri, id);
+            case CHATROOMS_ALL_ROWS:
+                // TODO: Implement this to handle requests to insert a new chatroom.
+                // Make sure to notify any observers
+                id = db.insertOrThrow(CHATROOMS_TABLE, null, values);
+                getContext().getContentResolver().notifyChange(uri, null);
+                return ContentUris.withAppendedId(uri, id);
             case MESSAGES_SINGLE_ROW:
                 throw new IllegalArgumentException("insert expects a whole-table URI");
             default:
@@ -171,19 +157,24 @@ public class ChatProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection,
-                        String[] selectionArgs, String sortOrder) {
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         switch (uriMatcher.match(uri)) {
             case MESSAGES_ALL_ROWS:
                 // TODO: Implement this to handle query of all messages.
-                return db.query(MESSAGES_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+                Cursor cursor = db.query(MESSAGES_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
             case PEERS_ALL_ROWS:
                 // TODO: Implement this to handle query of all peers.
-                return db.query(PEERS_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+                Cursor peerCursor = db.query(PEERS_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+                peerCursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return peerCursor;
             case CHATROOMS_ALL_ROWS:
                 // TODO: Implement this to handle query of all chatrooms.
-                return db.query(CHATROOMS_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+                Cursor chatRoomCursor = db.query(CHATROOMS_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+                chatRoomCursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return chatRoomCursor;
             case MESSAGES_SINGLE_ROW:
                 // TODO: Implement this to handle query of a specific message.
                 throw new UnsupportedOperationException("Not yet implemented");
@@ -204,13 +195,25 @@ public class ChatProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         // TODO Implement this to handle requests to delete one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int rowsDeleted = 0;
+        switch (uriMatcher.match(uri)){
+            case MESSAGES_ALL_ROWS:
+                rowsDeleted = db.delete(MESSAGES_TABLE, null, null);
+                break;
+            case PEERS_ALL_ROWS:
+                rowsDeleted = db.delete(PEERS_TABLE, null, null);
+                break;
+        }
+
+        return rowsDeleted;
     }
 
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] records) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int insertNums = 0;
         switch (uriMatcher.match(uri)) {
             case MESSAGES_SYNC:
                 /*
@@ -231,7 +234,8 @@ public class ChatProvider extends ContentProvider {
                         if (numReplacedMessages > 0 && cursor.moveToFirst()) {
                             do {
                                 String deleteSelection = MessageContract.ID + "=" + Long.toString(cursor.getLong(0));
-                                db.delete(MESSAGES_TABLE, deleteSelection, null);
+                                int result = db.delete(MESSAGES_TABLE, deleteSelection, null);
+                                Log.v("Chat Provider delete", String.valueOf(result));
                                 numReplacedMessages--;
                             } while (numReplacedMessages > 0 && cursor.moveToNext());
                         }
@@ -243,9 +247,12 @@ public class ChatProvider extends ContentProvider {
                      * Insert the messages downloaded from server, which will include replacements for deleted records.
                      */
                     for (ContentValues record : records) {
-                        if (db.insert(MESSAGES_TABLE, null, record) != 1) {
-                            throw new IllegalStateException("Failure to insert updated chat message record!");
-                        };
+                        try {
+                            db.insertOrThrow(MESSAGES_TABLE, null, record);
+                            insertNums++;
+                        } catch (Exception e) {
+                            Log.e("Chat Provide Error", e.getMessage());
+                        }
                     }
 
                     db.setTransactionSuccessful();
@@ -254,7 +261,7 @@ public class ChatProvider extends ContentProvider {
                 }
                 // TODO Make sure to notify any observers
                 getContext().getContentResolver().notifyChange(uri, null);
-
+                return insertNums;
             default:
                 throw new IllegalStateException("insert: bad case");
         }

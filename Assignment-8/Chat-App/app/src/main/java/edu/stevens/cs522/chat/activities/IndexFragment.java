@@ -1,5 +1,6 @@
 package edu.stevens.cs522.chat.activities;
 
+import android.app.Activity;
 import android.app.ListFragment;
 import android.content.Context;
 import android.database.Cursor;
@@ -13,6 +14,8 @@ import android.widget.TextView;
 
 import edu.stevens.cs522.chat.IndexObserver;
 import edu.stevens.cs522.chat.R;
+import edu.stevens.cs522.chat.contracts.ChatroomContract;
+import edu.stevens.cs522.chat.dialog.CreateChatRoom;
 import edu.stevens.cs522.chat.managers.TypedCursor;
 
 public class IndexFragment<T> extends ListFragment implements IIndexManager.Callback<T> {
@@ -20,9 +23,7 @@ public class IndexFragment<T> extends ListFragment implements IIndexManager.Call
     @SuppressWarnings("unused")
     private final static String TAG = IndexFragment.class.getCanonicalName();
 
-    /**
-     * The serialization (saved instance state) Bundle key representing the activated item position. Only used on tablets.
-     */
+    //The serialization (saved instance state) Bundle key representing the activated item position. Only used on tablets.
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
 
     /**
@@ -40,26 +41,26 @@ public class IndexFragment<T> extends ListFragment implements IIndexManager.Call
         }
     };
 
-    /**
-     * The fragment's current callback object, which is notified of list item clicks.
-     */
+    //The fragment's current callback object, which is notified of list item clicks.
     private IIndexManager<T> indexManager = dummyManager;
-
-    /**
-     * The current activated item position. Only used on tablets.
-     */
+     //The current activated item position. Only used on tablets.
     private int activatedPosition = ListView.INVALID_POSITION;
+    private TextView title;
+    private View addChatRoomeButton;
+    private Activity activity;
+    private SimpleCursorAdapter adapter;
+    private TypedCursor<T> cursor;
+    private IndexObserver observer;
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon screen orientation changes).
-     */
+     //Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon screen orientation changes).
     public IndexFragment() {
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(Activity context) {
         super.onAttach(context);
+
+        this.activity = (Activity) context;
 
         if (!(context instanceof IIndexManager)) {
             throw new IllegalStateException("Context must implement IIndexManager.");
@@ -73,13 +74,22 @@ public class IndexFragment<T> extends ListFragment implements IIndexManager.Call
         super.onCreate(savedInstanceState);
     }
 
-    private TextView title;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_index, container, false);
 
+        String[] from = {ChatroomContract.NAME};
+        int[] to = {android.R.id.text1};
+        adapter = new SimpleCursorAdapter(activity, android.R.layout.simple_list_item_activated_1, null, from, to, 0);
+
         title = (TextView) rootView.findViewById(R.id.index_title);
+        addChatRoomeButton = rootView.findViewById(R.id.add_chatroom_button);
+        addChatRoomeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CreateChatRoom.launch(activity, "");
+            }
+        });
 
         return rootView;
     }
@@ -98,8 +108,9 @@ public class IndexFragment<T> extends ListFragment implements IIndexManager.Call
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // Call to getActivity() must wait until activity is created.
-        this.adapter = indexManager.getIndexTitles(this);
-        setListAdapter(adapter);
+        indexManager.getIndexTitles(this);
+        // this.adapter = indexManager.getIndexTitles(this);
+        // setListAdapter(adapter);
 
     }
 
@@ -109,16 +120,11 @@ public class IndexFragment<T> extends ListFragment implements IIndexManager.Call
         }
     }
 
-    private SimpleCursorAdapter adapter;
-
-    private TypedCursor<T> cursor;
-
-    private IndexObserver observer;
-
     @Override
     public void setTitles(TypedCursor<T> cursor) {
         this.cursor = cursor;
         adapter.swapCursor(cursor.getCursor());
+        setListAdapter(adapter);
         this.observer = new IndexObserver(adapter, getListView());
         cursor.registerContentObserver(observer);
     }
@@ -156,9 +162,7 @@ public class IndexFragment<T> extends ListFragment implements IIndexManager.Call
         }
     }
 
-    /**
-     * Turns on activate-on-click mode. When this mode is on, list items will be given the 'activated' state when touched.
-     */
+     //Turns on activate-on-click mode. When this mode is on, list items will be given the 'activated' state when touched.
     public void setActivateOnItemClick(boolean activateOnItemClick) {
         // When setting CHOICE_MODE_SINGLE, ListView will automatically
         // give items the 'activated' state when touched.

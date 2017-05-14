@@ -16,7 +16,7 @@ public class AsyncContentResolver extends AsyncQueryHandler {
         super(cr);
     }
 
-    public void insertAsync(Uri uri, ContentValues values, IContinue<Long> callback) {
+    public void insertAsync(Uri uri, ContentValues values, IContinue<Uri> callback) {
         this.startInsert(0, callback, uri, values);
     }
 

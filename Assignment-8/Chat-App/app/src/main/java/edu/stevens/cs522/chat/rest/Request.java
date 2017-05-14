@@ -42,18 +42,10 @@ public abstract class Request implements Parcelable {
         }
     }
 
-    // Unique identifier (per device) for a request
-    public long id;
-
-    // Time stamp
-    public Date timestamp;
-
-    // Device coordinates
+    public long id;  // Unique identifier (per device) for a request
+    public Date timestamp = new Date();  // Time stamp
     public double longitude;
-
     public double latitude;
-
-    // Output in case of errors
     public String responseMessage;
 
 
@@ -79,22 +71,27 @@ public abstract class Request implements Parcelable {
 
     protected Request(Parcel in) {
         // TODO assume tag has already been read, this will be called by subclass constructor
+//        this.timestamp = new Date(in.readLong());
+//        this.longitude = in.readDouble();
+//        this.latitude = in.readDouble();
+//        this.responseMessage = in.readString();
     }
 
     @Override
     public void writeToParcel(Parcel out, int flags) {
         // TODO subclasses write tag, then call this, then write out their own fields
+//        out.writeLong(this.timestamp.getTime());
+//        out.writeDouble(this.longitude);
+//        out.writeDouble(this.latitude);
+//        out.writeString(this.responseMessage);
     }
 
     /*
      * HTTP request headers
      */
     public static String REQUEST_ID_HEADER = "X-Request-ID";
-
     public static String TIMESTAMP_HEADER = "X-Timestamp";
-
     public static String LONGITUDE_HEADER = "X-Longitude";
-
     public static String LATITUDE_HEADER = "X-Latitude";
 
     // App-specific HTTP request headers.
@@ -111,8 +108,7 @@ public abstract class Request implements Parcelable {
     public abstract String getRequestEntity() throws IOException;
 
     // Define your own Response class, including HTTP response code.
-    public abstract Response getResponse(HttpURLConnection connection,
-                                         JsonReader rd /* Null for streaming */)
+    public abstract Response getResponse(HttpURLConnection connection, JsonReader rd /* Null for streaming */)
         throws IOException;
 
     public final Response getResponse(HttpURLConnection connection) throws IOException {

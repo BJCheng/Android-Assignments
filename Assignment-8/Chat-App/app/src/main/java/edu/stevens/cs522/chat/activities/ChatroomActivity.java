@@ -1,19 +1,20 @@
 /*********************************************************************
 
-    Chat server: accept chat messages from clients.
-    
-    Sender chatName and GPS coordinates are encoded
-    in the messages, and stripped off upon receipt.
+ Chat server: accept chat messages from clients.
 
-    Copyright (c) 2017 Stevens Institute of Technology
+ Sender chatName and GPS coordinates are encoded
+ in the messages, and stripped off upon receipt.
 
-**********************************************************************/
+ Copyright (c) 2017 Stevens Institute of Technology
+
+ **********************************************************************/
 package edu.stevens.cs522.chat.activities;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -44,33 +45,20 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
     private final static String SHOWING_CHATROOMS_TAG = "INDEX-FRAGMENT";
     private final static String SHOWING_MESSAGES_TAG = "CHAT-FRAGMENT";
     private final static String ADDING_MESSAGE_TAG = "ADD-MESSAGE-DIALOG";
-    /*
-     * Managers
-     */
     private ChatroomManager chatroomManager;
     private MessageManager messageManager;
     private PeerManager peerManager;
     private ServiceManager serviceManager;
-    /**
-     * Fragments
-     */
     private boolean isTwoPane;
     private IIndexManager.Callback<ChatRoom> indexFragment;
     private ChatFragment chatFragment;
 
-    /*
-     * Helper for Web service
-     */
+    //Helper for Web service
     private ChatHelper helper;
 
-    /*
-     * For receiving ack when message is sent.
-     */
+    //For receiving ack when message is sent.
     private ResultReceiverWrapper sendResultReceiver;
 
-    /*
-	 * Called when the activity is first created. 
-	 */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,11 +66,13 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
         setContentView(R.layout.chatrooms);
 
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
+        indexFragment = new IndexFragment<>();
 
         if (!isTwoPane) {
             // TODO add an index fragment as the fragment in the frame layout
-
-
+            getFragmentManager().beginTransaction()
+                    .add(R.id.fragment_container, (IndexFragment) indexFragment)
+                    .commit();
         }
 
         // TODO create the message and peer and chatroom managers
@@ -95,10 +85,8 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
 
         // TODO initialize sendResultReceiver and serviceManager
         sendResultReceiver = new ResultReceiverWrapper(new Handler());
+        serviceManager = new ServiceManager(this);
 
-        /**
-         * Initialize settings to default values.
-         */
         if (!Settings.isRegistered(this)) {
             Settings.getClientId(this);
             // TODO launch registration activity
@@ -128,7 +116,7 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         // TODO inflate a menu with PEERS and SETTINGS options
-
+        getMenuInflater().inflate(R.menu.chatserver_menu, menu);
 
         return true;
     }
@@ -169,10 +157,7 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
         }
     }
 
-    /**
-     * Callbacks for index fragment
-     */
-
+    //Callbacks for index fragment
     @Override
     public SimpleCursorAdapter getIndexTitles(Callback<ChatRoom> callback) {
         indexFragment = callback;
@@ -180,7 +165,7 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
         chatroomManager.getAllChatroomsAsync(chatroomQueryListener);
 
         String[] from = {ChatroomContract.NAME};
-        int[] to = { android.R.id.text1 };
+        int[] to = {android.R.id.text1};
         return new SimpleCursorAdapter(this, android.R.layout.simple_list_item_activated_1, null, from, to, 0);
     }
 
@@ -189,23 +174,31 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
         if (isTwoPane) {
             // For two pane, push selection of chatroom to chat fragment, which will then
             // ask the parent activity to query the database.
-            chatFragment = (ChatFragment) getFragmentManager().findFragmentById(R.id.chat_fragment);
-            chatFragment.setChatroom(chatroom);
+//            chatFragment = (ChatFragment) getFragmentManager().findFragmentById(R.id.chat_fragment);
+//            chatFragment.setChatroom(chatroom);
+            chatFragment = new ChatFragment();
+            Bundle args = new Bundle();
+            args.putParcelable(ChatFragment.CHATROOM_KEY, chatroom);
+            chatFragment.setArguments(args);
+            getFragmentManager().beginTransaction()
+                    .add(R.id.multipane_chat_fragment_container, chatFragment)
+                    .addToBackStack(null)
+                    .commit();
         } else {
             // For single pane, replace index fragment with messages fragment
             chatFragment = new ChatFragment();
             Bundle args = new Bundle();
-            args.putString(ChatFragment.CHATROOM_KEY, chatroom.name);
+            args.putParcelable(ChatFragment.CHATROOM_KEY, chatroom);
             chatFragment.setArguments(args);
             // TODO replace index fragment
-
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, chatFragment)
+                    .addToBackStack(null)
+                    .commit();
         }
     }
 
-    /**
-     * Callbacks for querying database for chatrooms
-     */
-
+    //Callbacks for querying database for chatrooms
     private QueryBuilder.IQueryListener<ChatRoom> chatroomQueryListener = new QueryBuilder.IQueryListener<ChatRoom>() {
 
         @Override
@@ -220,10 +213,7 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
 
     };
 
-    /**
-     * Callbacks for chat fragment
-     */
-
+    //Callbacks for chat fragment
     @Override
     public void getMessages(ChatRoom chatroom) {
         messageManager.getAllMessagesAsync(chatroom, messageQueryListener);
@@ -234,10 +224,7 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
         SendMessage.launch(this, ADDING_MESSAGE_TAG, chatroom);
     }
 
-    /**
-     * Callbacks for querying for messages
-     */
-
+    //Callbacks for querying for messages
     private QueryBuilder.IQueryListener<ChatMessage> messageQueryListener = new QueryBuilder.IQueryListener<ChatMessage>() {
 
         @Override
@@ -256,12 +243,21 @@ public class ChatroomActivity extends Activity implements IIndexManager<ChatRoom
 
     };
 
-    /**
-     * Callbacks for message posting dialog
-     */
-
+    //Callbacks for message posting dialog <==why??? why write this piece of code within Activity?
     @Override
     public void send(ChatRoom chatroom, String message, Double latitude, Double longitude, Date timestamp) {
         helper.postMessage(chatroom.name, message);
+    }
+
+    @Override
+    public void onBackPressed() {
+//        if(findViewById(R.id.chat_fragment)!=null){
+//            ChatFragment chatFragment1 = (ChatFragment) getFragmentManager().findFragmentById(R.id.chat_fragment);
+//            getFragmentManager().beginTransaction()
+//                    .remove(chatFragment1)
+//                    .commit();
+//        }else
+        super.onBackPressed();
+
     }
 }

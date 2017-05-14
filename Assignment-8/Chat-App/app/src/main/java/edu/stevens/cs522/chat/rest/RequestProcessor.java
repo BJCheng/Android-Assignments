@@ -56,8 +56,11 @@ public class RequestProcessor {
 
     public Response perform(SynchronizeRequest request) {
         RestMethod.StreamingResponse response = null;
+        request.lastSequenceNumber = requestManager.getLastSequenceNumber();
         final TypedCursor<ChatMessage> messages = requestManager.getUnsentMessages();
         int numMessagesReplaced = messages.getCount();
+        if (numMessagesReplaced < 1)
+            return new DummyResponse(0);
         try {
             RestMethod.StreamingOutput out = new RestMethod.StreamingOutput() {
                 @Override

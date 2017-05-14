@@ -2,6 +2,7 @@ package edu.stevens.cs522.chat.rest;
 
 import android.net.Uri;
 import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 
@@ -20,7 +21,7 @@ import edu.stevens.cs522.chat.util.DateUtils;
  * Created by dduggan.
  */
 
-public class PostMessageRequest extends Request {
+public class PostMessageRequest extends Request implements Parcelable {
 
     public ChatMessage message;
 
@@ -60,6 +61,7 @@ public class PostMessageRequest extends Request {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         // TODO
+        dest.writeParcelable(this.message, flags);
     }
 
     public PostMessageRequest() {
@@ -69,6 +71,7 @@ public class PostMessageRequest extends Request {
     public PostMessageRequest(Parcel in) {
         super(in);
         // TODO
+        this.message = in.readParcelable(ChatMessage.class.getClassLoader());
     }
 
     public static Creator<PostMessageRequest> CREATOR = new Creator<PostMessageRequest>() {

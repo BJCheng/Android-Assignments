@@ -40,10 +40,16 @@ public class MessageManager extends Manager<ChatMessage> {
 
     public void getAllMessagesAsync(ChatRoom chatroom, IQueryListener<ChatMessage> listener) {
         // TODO use QueryBuilder to complete this
-        executeQuery(CONTENT_URI, listener);
+//        getAsyncResolver().queryAsync(CONTENT_URI, null, MessageContract.CHAT_ROOM+"=?",
+//                new String[]{chatroom.name}, null, listener);
+        executeQuery(CONTENT_URI, listener, chatroom.name);
     }
 
-    public void persistAsync(ChatMessage Message, IContinue<Long> callback) {
+    public void getAllMessagesSync(ChatRoom chatroom){
+        getSyncResolver().query(CONTENT_URI, null, MessageContract.CHAT_ROOM + "=?", new String[]{chatroom.name}, null);
+    }
+
+    public void persistAsync(ChatMessage Message, IContinue<Uri> callback) {
         // TODO
         ContentValues values = new ContentValues();
         Message.writeToProvider(values);

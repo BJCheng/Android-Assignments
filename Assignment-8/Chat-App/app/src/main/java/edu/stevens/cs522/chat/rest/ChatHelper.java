@@ -25,11 +25,11 @@ public class ChatHelper {
     }
 
     // TODO provide a result receiver that will display a toast message upon completion
-    public void register (String chatName) {
+    public void register (String chatName, ResultReceiver receiver) {
         if (chatName != null && !chatName.isEmpty()) {
             Settings.saveChatName(context, chatName);
             RegisterRequest request = new RegisterRequest(chatName);
-            addRequest(request);
+            addRequest(request, receiver);
         }
     }
 

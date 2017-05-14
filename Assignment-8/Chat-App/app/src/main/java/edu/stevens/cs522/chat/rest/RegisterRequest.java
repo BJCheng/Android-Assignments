@@ -6,6 +6,7 @@ import android.util.JsonReader;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -46,11 +47,23 @@ public class RegisterRequest extends Request {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         // TODO
+        dest.writeLong(this.id);
+        dest.writeString(this.chatName);
+        dest.writeLong(this.timestamp.getTime());
+        dest.writeDouble(this.longitude);
+        dest.writeDouble(this.latitude);
+        dest.writeString(this.responseMessage);
     }
 
     public RegisterRequest(Parcel in) {
         super(in);
         // TODO
+        this.id = in.readLong();
+        this.chatName = in.readString();
+        this.timestamp = new Date(in.readLong());
+        this.longitude = in.readDouble();
+        this.latitude = in.readDouble();
+        this.responseMessage = in.readString();
     }
 
     public static Creator<RegisterRequest> CREATOR = new Creator<RegisterRequest>() {

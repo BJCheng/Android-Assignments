@@ -16,7 +16,7 @@ import edu.stevens.cs522.chat.entities.Peer;
 
 /**
  * Created by dduggan.
- *
+ * <p>
  * The API used by the Web service for synchronizing messages with server.
  * It is assumed that all operations are invoked on the background thread for Web services.
  */
@@ -47,11 +47,12 @@ public class RequestManager extends Manager<ChatMessage> {
 
     /**
      * Get the last sequence number in the messages database.
+     *
      * @return
      */
     public long getLastSequenceNumber() {
         String selection = MessageContract.SEQUENCE_NUMBER + "<>0";
-        String[] columns = { String.format("MAX(%s) as %s", MessageContract.SEQUENCE_NUMBER, MAX_SEQNO_COLUMN) };
+        String[] columns = {String.format("MAX(%s) as %s", MessageContract.SEQUENCE_NUMBER, MAX_SEQNO_COLUMN)};
         Cursor cursor = getSyncResolver().query(MessageContract.CONTENT_URI, columns, selection, null, null);
         try {
             if (cursor.moveToFirst()) {
@@ -67,6 +68,7 @@ public class RequestManager extends Manager<ChatMessage> {
 
     /**
      * Get all unsent messages, identified by sequence number = 0.
+     *
      * @return
      */
     public TypedCursor<ChatMessage> getUnsentMessages() {
@@ -79,12 +81,13 @@ public class RequestManager extends Manager<ChatMessage> {
     /**
      * Sync messages with server.  Replacement of messages should be done as part of a transaction
      * because the user may be adding chat messages as we are updating.
+     *
      * @param numMessagesReplaced
      * @param downloadedMessages
      */
     public void syncMessages(int numMessagesReplaced, List<ChatMessage> downloadedMessages) {
         ContentValues[] records = new ContentValues[downloadedMessages.size()];
-        for (int ix=0; ix<downloadedMessages.size(); ix++) {
+        for (int ix = 0; ix < downloadedMessages.size(); ix++) {
             records[ix] = new ContentValues();
             downloadedMessages.get(ix).writeToProvider(records[ix]);
         }

@@ -17,8 +17,9 @@
     <!-- String literals in the UI -->
 
     <string name="message_edit_text">Type your message here.</string>
+    <string name="chat_room_edit_text">Type your chat room here.</string>
     <string name="send_label">SEND</string>
-    <string name="register_label">REGISTER</string>
+    <string name="register_label">Ben-Jen Cheng</string>
     <string name="show_peers">PEERS</string>
     <string name="settings">SETTINGS</string>
     <string name="title_activity_chatserver">ChatServer</string>
@@ -55,6 +56,7 @@
     <!-- Dialogs -->
     <string name="add">ADD</string>
     <string name="send">SEND</string>
+    <string name="create">CREATE</string>
     <string name="cancel">CANCEL</string>
 
     <!-- TODO: Remove or change this placeholder text -->

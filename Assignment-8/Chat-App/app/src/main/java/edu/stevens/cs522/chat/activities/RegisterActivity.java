@@ -19,6 +19,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import edu.stevens.cs522.chat.R;
 import edu.stevens.cs522.chat.entities.ChatMessage;
@@ -35,13 +36,9 @@ public class RegisterActivity extends Activity implements OnClickListener, Resul
      * Widgets for dest address, message text, send button.
      */
     private TextView clientIdText;
-
     private EditText userNameText;
-
     private EditText serverUriText;
-
     private Button registerButton;
-
     /*
      * Helper for Web service
      */
@@ -74,6 +71,7 @@ public class RegisterActivity extends Activity implements OnClickListener, Resul
 
         // TODO initialize registerResultReceiver
         registerResultReceiver = new ResultReceiverWrapper(new Handler());
+        registerResultReceiver.setReceiver(this);
 
         // TODO get references to views
 
@@ -108,25 +106,14 @@ public class RegisterActivity extends Activity implements OnClickListener, Resul
      */
     public void onClick(View v) {
         if (helper != null) {
-
-            String userName;
-
-            String serverUri;
-
             // TODO get server URI and userName from UI, and use helper to register
             // TODO set registered in settings upon completion
-
-            userName = userNameText.getText().toString();
-
-            serverUri = serverUriText.getText().toString();
-
-            // helper.register(userName);
-
+            String userName = userNameText.getText().toString();
+            String serverUri = serverUriText.getText().toString();
+            helper.register(userName, registerResultReceiver);
             Settings.saveChatName(this, userName);
-
             Settings.saveServerUri(this, serverUri);
-
-            // End todo
+            Settings.setRegistered(this, true);
 
             Log.i(TAG, "Registered: " + userName);
 
@@ -141,9 +128,11 @@ public class RegisterActivity extends Activity implements OnClickListener, Resul
             case RESULT_OK:
                 Settings.setRegistered(this, true);
                 // TODO show a success toast message
+                Toast.makeText(this, "Register Successfully", Toast.LENGTH_LONG).show();
                 break;
             default:
                 // TODO show a failure toast message
+                Toast.makeText(this, "Register Failed", Toast.LENGTH_LONG).show();
                 break;
         }
     }

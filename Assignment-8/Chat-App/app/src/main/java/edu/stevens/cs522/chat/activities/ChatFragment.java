@@ -1,17 +1,19 @@
 /*********************************************************************
 
-    Chat server: accept chat messages from clients.
-    
-    Sender chatName and GPS coordinates are encoded
-    in the messages, and stripped off upon receipt.
+ Chat server: accept chat messages from clients.
 
-    Copyright (c) 2017 Stevens Institute of Technology
+ Sender chatName and GPS coordinates are encoded
+ in the messages, and stripped off upon receipt.
 
-**********************************************************************/
+ Copyright (c) 2017 Stevens Institute of Technology
+
+ **********************************************************************/
 package edu.stevens.cs522.chat.activities;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,12 +27,12 @@ import edu.stevens.cs522.chat.async.QueryBuilder;
 import edu.stevens.cs522.chat.contracts.MessageContract;
 import edu.stevens.cs522.chat.entities.ChatMessage;
 import edu.stevens.cs522.chat.entities.ChatRoom;
+import edu.stevens.cs522.chat.managers.MessageManager;
 import edu.stevens.cs522.chat.managers.TypedCursor;
 
 public class ChatFragment extends Fragment implements OnClickListener, QueryBuilder.IQueryListener<ChatMessage> {
 
     private final static String TAG = ChatFragment.class.getCanonicalName();
-
     public final static String CHATROOM_KEY = "chatroom";
 
     public interface IChatListener {
@@ -42,19 +44,12 @@ public class ChatFragment extends Fragment implements OnClickListener, QueryBuil
     }
 
     private IChatListener listener;
-
     private Context context;
-
     private ChatRoom chatroom;
-		
-    /*
-     * UI for displaying received messages
-     */
-	private ListView messageList;
-
+    private ListView messageList;
     private View addButton;
-
     private SimpleCursorAdapter messagesAdapter;
+    private MessageManager messageManager;
 
 
     public ChatFragment() {
@@ -62,7 +57,7 @@ public class ChatFragment extends Fragment implements OnClickListener, QueryBuil
 
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(Activity context) {
         super.onAttach(context);
         this.context = context;
         if (context instanceof IChatListener) {
@@ -72,22 +67,30 @@ public class ChatFragment extends Fragment implements OnClickListener, QueryBuil
         }
     }
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-        chatroom = getArguments().getParcelable(CHATROOM_KEY);
+        messagesAdapter = new SimpleCursorAdapter(context, android.R.layout.simple_list_item_1, null,
+                new String[]{MessageContract.MESSAGE_TEXT, MessageContract.SENDER},
+                new int[]{android.R.id.text1, android.R.id.text2}, 0);
+        messageManager = new MessageManager(context);
+
+        if (getArguments() != null) {
+            setChatroom((ChatRoom) getArguments().getParcelable(CHATROOM_KEY));
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.messages, container, false);
 
+        messageList = (ListView)rootView.findViewById(R.id.message_list);
         addButton = rootView.findViewById(R.id.add_button);
         addButton.setOnClickListener(this);
 
         // TODO use SimpleCursorAdapter to display the messages received.
-
+        messageList.setAdapter(messagesAdapter);
 
         return rootView;
     }
@@ -98,12 +101,12 @@ public class ChatFragment extends Fragment implements OnClickListener, QueryBuil
 
     }
 
-	public void onResume() {
+    public void onResume() {
         super.onResume();
 
         if (chatroom != null) {
             // TODO initiate a query for all messages in the activity
-
+            messageManager.getAllMessagesAsync(chatroom, this);
         }
     }
 
@@ -120,12 +123,15 @@ public class ChatFragment extends Fragment implements OnClickListener, QueryBuil
         this.chatroom = chatroom;
 
         // TODO initiate a query for all messages in the activity
-
+        messageManager.getAllMessagesAsync(chatroom, this);
     }
 
     @Override
     public void handleResults(TypedCursor<ChatMessage> results) {
         // TODO
+        Cursor cursor = results.getCursor();
+        messagesAdapter.swapCursor(cursor);
+        messagesAdapter.notifyDataSetChanged();
     }
 
     @Override

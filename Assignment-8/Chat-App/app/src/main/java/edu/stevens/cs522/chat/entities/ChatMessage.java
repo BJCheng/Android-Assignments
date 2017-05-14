@@ -20,9 +20,9 @@ public class ChatMessage implements Parcelable {
     public long seqNum;
     public String messageText;
     public String chatRoom;
-    public Date timestamp;
-    public Double longitude;
-    public Double latitude;
+    public Date timestamp = new Date();
+    public Double longitude = 0.0;
+    public Double latitude = 0.0;
     public String sender;  // Sender username and FK (in local database)
     public long senderId;
 

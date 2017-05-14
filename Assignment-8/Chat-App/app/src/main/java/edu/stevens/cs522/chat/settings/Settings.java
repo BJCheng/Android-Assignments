@@ -14,13 +14,9 @@ import java.util.prefs.Preferences;
 public class Settings {
 
     public static final String SETTINGS = "settings";
-
     private static final String REGISTERED_KEY = "registered";
-
     private static final String CLIENT_ID_KEY = "client-id";
-
     private static final String CHAT_NAME_KEY = "user-name";
-
     private static final String CHAT_SERVER_KEY = "server-uri";
 
     public static UUID getClientId(Context context) {

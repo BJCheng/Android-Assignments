@@ -48,8 +48,8 @@ public abstract class Manager<T> {
     // TODO Provide operations for executing queries (see lectures)
     //queryBuilder是為了能接受listener當傳入的參數
     //queryBuilder本身是一個LoaderManager，build就是在build LoaderManager的LoaderCallback
-    protected void executeQuery(Uri uri, IQueryListener<T> listener) {
-        QueryBuilder.executeQuery(tag, (Activity) context, uri, loaderID, creator, listener);
+    protected void executeQuery(Uri uri, IQueryListener<T> listener, String chatRoomName) {
+        QueryBuilder.executeQuery(tag, (Activity) context, uri, loaderID, creator, listener, chatRoomName);
     }
 
 

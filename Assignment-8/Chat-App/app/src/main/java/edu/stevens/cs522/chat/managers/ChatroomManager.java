@@ -1,8 +1,13 @@
 package edu.stevens.cs522.chat.managers;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 
+import java.net.URI;
+
+import edu.stevens.cs522.chat.async.IContinue;
 import edu.stevens.cs522.chat.async.IEntityCreator;
 import edu.stevens.cs522.chat.contracts.ChatroomContract;
 import edu.stevens.cs522.chat.entities.ChatMessage;
@@ -24,12 +29,20 @@ public class ChatroomManager extends Manager<ChatRoom> {
         }
     };
 
+    private Uri contentUri = ChatroomContract.CONTENT_URI;
+
     public ChatroomManager(Context context) {
         super(context, creator, LOADER_ID);
     }
 
     public void getAllChatroomsAsync(IQueryListener<ChatRoom> listener) {
-        executeQuery(ChatroomContract.CONTENT_URI, listener);
+        executeQuery(ChatroomContract.CONTENT_URI, listener, null);
+    }
+
+    public void persistAsync(String chatRoomName, IContinue<Uri> callback){
+        ContentValues values = new ContentValues();
+        ChatroomContract.putName(values, chatRoomName);
+        getAsyncResolver().insertAsync(contentUri, values, callback);
     }
 
 
